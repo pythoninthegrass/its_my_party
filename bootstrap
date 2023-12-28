@@ -35,17 +35,8 @@ case "$1" in
 		sh -c "make install"
 		;;
     run)
-        # Run the playbook
-        ansible-playbook \
-            -i ./ansible/hosts \
-            ./ansible/playbook.yml
-        ;;
-    run-dev)
-        # Run the playbook with tags and debug
-        ansible-playbook \
-            -i ./ansible/hosts \
-            ./ansible/playbook.yml \
-            --tags test,qa -vvv
+        # Run the server
+        gunicorn -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 app:app --reload
         ;;
     bump-deps)
         # Update dependencies
@@ -72,6 +63,6 @@ case "$1" in
         sh -c "make test"
         ;;
   	*)
-		echo $"Usage: $0 <install|run|run-dev|install-precommit|update-precommit|release|test>"
+		echo $"Usage: $0 <install|run|install-precommit|update-precommit|release|test>"
 		exit 1
 esac

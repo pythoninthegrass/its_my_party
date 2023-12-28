@@ -1,5 +1,0 @@
-# code: language=ansible
-
----
-collections:
-- name: community.general

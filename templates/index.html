@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- TODO: import htmx for iframe script -->
+  <!-- <script src="https://unpkg.com/htmx.org"></script> -->
+  <!-- <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <title>it's my party</title>
+  <!-- TODO: move style to styles.css -->
+  <style>
+    #title {
+      color: #ffffff;
+      font-family: 'SF Pixelate', sans-serif;
+      font-size: 36px;
+      padding-top: 20px;
+      padding-bottom: 20px;
+    }
+
+    body {
+      background-image: url('/static/click.png');
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-size: cover;
+    }
+
+    #button-text {
+      color: #ffd000;
+      font-family: sans-serif;
+      font-size: 17px;
+      font-style: normal;
+      font-weight: 700;
+      padding: 10px;
+    }
+  </style>
+</head>
+
+<body class="flex flex-col items-center">
+  <div id="container-heading" class="container mx-auto text-center">
+    <!-- TODO: fix font-family / styles.css -->
+    <h1 class="text-4xl py-5" style="font-family: 'SF Pixelate', sans-serif;">it's my party</h1>
+  </div>
+  <div id="container-middle" class="absolute inset-0 flex items-center justify-center">
+    <div class="container-video">
+      <div class="button-wrapper">
+        <a id="button" class="button" href="#" onclick="embedVideo(); return false;">
+          <span id="button-text" class="button-text">click to feel something</span>
+        </a>
+      </div>
+      <div id="video-container"></div>
+    </div>
+  </div>
+  <div id="container-bottom"
+    class="container mx-auto text-center absolute bottom-5 left-1/2 transform -translate-x-1/2">
+    <p class="paragraph">‍
+      <a href="https://www.independent.co.uk/life-style/health-and-families/crying-stress-help-week-japan-hidefumi-yoshida-toho-university-a8602691.html"
+        target="_blank" class="link-2">Science</a> shows crying can relieve stress for a week.
+      <br>
+      Click above to watch a tear-inducing video and take a moment to let yourself feel something.
+      <br>
+      ‍<br>
+      <a href="/" aria-current="page" class="link-4 w--current">Refresh</a> the page for a new video. Visit once a week
+      for a stress-free life.<br> <br>
+    </p>
+  </div>
+  <!-- TODO: fix tiktok icon -->
+  <div id="container-social" class="fixed bottom-0 right-0 p-4 space-x-4 flex flex-row">
+    <a href="https://www.instagram.com" target="_blank" class="btn-social btn-instagram">
+      <i class="fa fa-instagram"></i>
+    </a>
+    <a href="https://www.tiktok.com" target="_blank" class="btn-social btn-tiktok">
+      <i class="fa fa-tiktok"></i>
+    </a>
+    <a href="https://www.facebook.com" target="_blank" class="btn-social btn-facebook">
+      <i class="fa fa-facebook"></i>
+    </a>
+    <a href="https://www.twitter.com" target="_blank" class="btn-social btn-twitter">
+      <i class="fa fa-twitter"></i>
+    </a>
+  </div>
+  <!-- TODO: use youtube api/scrape description of video and dsiplay beneath iframe -->
+  <script>
+    function embedVideo() {
+      document.getElementById('video-container').innerHTML = '<iframe width="854" height="480" src="https://www.youtube.com/embed/6Zbi0XmGtMw" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+      document.getElementById('button-text').style.display = 'none';
+    }
+  </script>
+  <!-- TODO: use htmx instead of js -->
+  <!-- <a href="#" hx-get="/get-video" hx-trigger="click" hx-target="#video-container" hx-indicator="#loading-indicator">
+    <span id="button-text" class="button-text">click to feel something</span>
+  </a>
+  <div id="video-container"></div>
+  <div id="loading-indicator" style="display: none;">Loading...</div> -->
+</body>
+
+</html>

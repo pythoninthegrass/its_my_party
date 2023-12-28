@@ -1,15 +1,10 @@
-# mvp
-
-<!-- !["It's dangerous to go alone! Take this."](static/image.jpg) -->
-<!-- <img src="https://user-images.githubusercontent.com/4097471/144654508-823c6e31-5e10-404c-9f9f-0d6b9d6ce617.jpg" width="300"> -->
-
-**minimum viable python**
+# its_my_party
 
 ## Summary
 Sets up a new development environment for a Mac or Linux (i.e., UNIX) box.
 
 **Table of Contents**
-* [mvp](#mvp)
+* [its\_my\_party](#its_my_party)
   * [Summary](#summary)
   * [Setup](#setup)
   * [Quickstart](#quickstart)
@@ -33,31 +28,63 @@ Sets up a new development environment for a Mac or Linux (i.e., UNIX) box.
     # install python and dependencies (e.g., git, ansible, etc.)
     ./bootstrap install
     ```
+* Run server
+    ```bash
+    # script
+    ./bootstrap run
+
+    # manual
+    gunicorn -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 app:app --reload
+    ```
 
 ## Development
-```bash
-# install tools and runtimes (cf. xcode, brew, asdf, poetry, etc.)
-./bootstrap <run|run-dev>   # dev only runs plays w/tags and is verbose
+* `asdf`
+    ```bash
+    asdf install
+    ```
+* `poetry`
+    ```bash
+    # install dependencies
+    poetry install
 
-# update pyproject.toml and poetry.lock
-./bootstrap bump-deps
+    # shell
+    poetry shell
 
-# export requirements.txt
-./bootstrap export-reqs
+    # run
+    poetry run python app.py
 
-# install git hooks
-./bootstrap install-precommit
+    # deactivate
+    exit
+    ```
+* `./boostrap` commands
+    ```bash
+    # update pyproject.toml and poetry.lock
+    ./bootstrap bump-deps
 
-# update git hooks
-./bootstrap update-precommit
-```
+    # export requirements.txt
+    ./bootstrap export-reqs
+
+    # install git hooks
+    ./bootstrap install-precommit
+
+    # update git hooks
+    ./bootstrap update-precommit
+    ```
+* [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/)
+    ```bash
+    # install commitizen
+    npm install -g commitizen
+    commitizen init cz-conventional-changelog --save-dev --save-exact
+
+    # commit
+    git add .
+
+    # commitizen
+    git cz
+    ```
 
 ## TODO
-* [Open Issues](https://github.com/pythoninthegrass/mvp/issues)
-* QA [Ansible playbook](ansible/playbook.yml)
-  * Test
-    * macOS
-    * Ubuntu
+* [Open Issues](https://github.com/pythoninthegrass/its_my_party/issues)
 * Write boilerplate pytest tests
 * CI/CD
 
