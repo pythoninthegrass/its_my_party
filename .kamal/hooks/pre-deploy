@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# SOURCE:https://github.com/basecamp/kamal/issues/41#issuecomment-1789223148
+
+REMOTE_HOST="lance@192.168.8.150"
+NETWORK_NAME="app-tier"
+
+# SSH into the remote host and execute Docker commands
+ssh "$REMOTE_HOST" << EOF
+    # Check if the Docker network already exists
+    if ! docker network inspect "$NETWORK_NAME" &>/dev/null; then
+        # If it doesn't exist, create it
+        docker network create "$NETWORK_NAME"
+        echo "Created Docker network: $NETWORK_NAME"
+    else
+        echo "Docker network $NETWORK_NAME already exists, skipping creation."
+    fi
+EOF

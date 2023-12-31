@@ -15,6 +15,11 @@ def hello():
     return {"message": "Hello, World!"}
 
 
+@app.get("/up")
+def up():
+    return {"message": "Server is up."}
+
+
 # TODO: setup htmx to use this route
 @app.get("/get-video", response_class=HTMLResponse)
 async def get_video(id, width=854, height=480):

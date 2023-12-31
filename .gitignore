@@ -1,9 +1,11 @@
 # ETC
-*.sqlite
 !*.example
-*.pem
 .ruff*
+*.pem
+*.sample
+*.sqlite
 *.zip
+web-check*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
