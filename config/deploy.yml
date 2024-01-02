@@ -1,13 +1,11 @@
-service: its-my-party
+service: <%= ENV['SERVICE'] %>
 
-image: ghcr.io/pythoninthegrass/its-my-party
-
-servers:
-  - 192.168.8.150
+image:
+  - <%= ENV['USER_NAME'] %>/<%= ENV['SERVICE'] %>
 
 registry:
-  server: ghcr.io
-  username: pythoninthegrass
+  server: <%= ENV['REGISTRY_URL'] %>
+  username: <%= ENV['USER_NAME'] %>
   password:
     - KAMAL_REGISTRY_PASSWORD
 
@@ -19,46 +17,86 @@ registry:
 #     - RAILS_MASTER_KEY
 
 ssh:
-  user: lance
+  user: <%= ENV['SSH_USER'] %>
 
-# builder:
-#   secrets:
-#     - GITHUB_TOKEN
-#   multiarch: true
+builder:
+  context: .
+  dockerfile: Dockerfile
+  # secrets:
+  #   - GITHUB_TOKEN
+  cache:
+    # type: gha
+    type: registry
+  remote:
+    arch: amd64
+    host: ssh://<%= ENV['SSH_USER'] %>@192.168.8.150
+
+servers:
+  web:
+    hosts:
+      - 192.168.8.150
+    options:
+      network: <%= ENV['NETWORK'] %>
+    port: 8000:8000
+    labels:
+      traefik.http.routers.service-name.entrypoints: websecure
+      traefik.http.routers.service-name.rule:
+        - Host(`<%= ENV['FQDN'] %>`)
+      traefik.http.routers.service-name.tls: true
+      traefik.http.routers.service-name.tls.certresolver: letsencrypt
 
 healthcheck:
   cord: /tmp/kamal-cord
   path: /up
-  port: 3000
+  port: <%= ENV['PORT'] %>
+  max_attempts: 10
+  interval: 20s
 
+# rolling deployments
 boot:
   limit: 10 # default:10 (also percent: "25%")
   wait: 2
 
+# TODO: debug `entryPoint web: ... listen tcp: address 80: missing port in address`
 traefik:
+  # host_port: 8080
+  # publish:
+  #     - 8080:8080
+  publish: false
+  options:
+    network: <%= ENV['NETWORK'] %>
+  volumes:
+    - /docker/containers/traefik/letsencrypt/acme.json:/letsencrypt/acme.json
+    - /docker/containers/traefik/rules:/rules
+    - /docker/containers/traefik/logs:/logs
+  memory: 512m
   args:
     accesslog: true
     accesslog.format: json
-
-# Use accessory services (secrets come from .env).
-# accessories:
-#   db:
-#     image: mysql:8.0
-#     host: 192.168.0.2
-#     port: 3306
-#     env:
-#       clear:
-#         MYSQL_ROOT_HOST: '%'
-#       secret:
-#         - MYSQL_ROOT_PASSWORD
-#     files:
-#       - config/mysql/production.cnf:/etc/mysql/my.cnf
-#       - db/production.sql:/docker-entrypoint-initdb.d/setup.sql
-#     directories:
-#       - data:/var/lib/mysql
-#   redis:
-#     image: redis:7.0
-#     host: 192.168.0.2
-#     port: 6379
-#     directories:
-#       - data:/data
+    entryPoints.web.address: :80
+    entryPoints.websecure.address: :443
+    entryPoints.web.http.redirections.entryPoint.to: websecure
+    entryPoints.web.http.redirections.entryPoint.scheme: https
+    entryPoints.web.http.redirections.entrypoint.permanent: true
+    certificatesResolvers.letsencrypt.acme.email: <%= ENV['EMAIL'] %>
+    certificatesResolvers.letsencrypt.acme.storage: /letsencrypt/acme.json
+    certificatesResolvers.letsencrypt.acme.httpchallenge: true
+    certificatesResolvers.letsencrypt.acme.httpchallenge.entrypoint: web
+    # entrypoints.https.forwardedHeaders.trustedIPs: <%= ENV['CLOUDFLARE_IPS'] %>
+    # accessLog.bufferingSize: 100
+    # accessLog.filePath: /logs/access.log
+    # accessLog.filters.statusCodes: 204-299,400-499,500-599
+    # api: true
+    # api.dashboard: true
+    # global.checkNewVersion: true
+    # global.sendAnonymousUsage: false
+    # log: true
+    # log.filePath: /logs/traefik.log
+    # log.level: INFO
+    # providers.docker: true
+    # providers.docker.endpoint: unix:///var/run/docker.sock
+    # providers.docker.exposedByDefault: false
+    # providers.docker.network: <%= ENV['NETWORK'] %>
+    # providers.docker.swarmMode: false
+    # providers.file.directory: /rules
+    # providers.file.watch: true
