@@ -2,8 +2,23 @@
 
 # SOURCE:https://github.com/basecamp/kamal/issues/41#issuecomment-1789223148
 
-REMOTE_HOST="lance@192.168.8.150"
-NETWORK_NAME="app-tier"
+# get repo root
+TLD="$(git rev-parse --show-toplevel 2>/dev/null)"
+
+# get env file
+ENV_FILE="${TLD}/.env"
+
+# source env file
+[[ -f "${ENV_FILE}" ]] && export $(grep -v '^#\|CLOUDFLARE_IPS' ${ENV_FILE} | xargs)
+
+# get logged in user
+[[ -n $(logname >/dev/null 2>&1) ]] && logged_in_user=$(logname) || logged_in_user=$(whoami)
+
+# set env vars
+SSH_USER="${SSH_USER:-$logged_in_user}"
+SSH_HOST="${REMOTE_HOSTS:-localhost}"
+REMOTE_HOST="${SSH_USER}@${SSH_HOST}"
+NETWORK_NAME="${NETWORK_NAME:-app-tier}"
 
 # SSH into the remote host and execute Docker commands
 ssh "$REMOTE_HOST" << EOF
