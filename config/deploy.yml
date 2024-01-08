@@ -24,17 +24,15 @@ builder:
   dockerfile: Dockerfile
   # secrets:
   #   - GITHUB_TOKEN
-  cache:
-    # type: gha
-    type: registry
-  remote:
-    arch: amd64
-    host: ssh://<%= ENV['SSH_USER'] %>@192.168.8.150
+  # cache:
+  #   # type: gha
+  # remote:
+  #   arch: amd64
+  #   host: ssh://<%= ENV['SSH_USER'] %>@192.168.8.150
 
 servers:
   web:
-    hosts:
-      - 192.168.8.150
+    hosts: <%= ENV['REMOTE_HOSTS'] %>
     options:
       network: <%= ENV['NETWORK'] %>
     port: 8000:8000
