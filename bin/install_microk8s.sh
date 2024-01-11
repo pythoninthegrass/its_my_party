@@ -46,6 +46,11 @@ if [[ -f "${logged_in_home}/.kube/config" ]]; then
 fi
 microk8s.kubectl config view --raw > "${logged_in_home}/.kube/config"
 
+# get server address
+srv_addr=$(grep -E "server: https://.*:16443" "${logged_in_home}/.kube/config" | awk '{print $2}')
+echo -e "[localhost]\t\t${srv_addr}"
+echo -e "[LAN]\t\thttps://$(hostname -I | awk '{print $1}'):16443"
+
 # install k9s
 if [[ ! -n $(command -v go 2&> /dev/null) ]]; then
 	go install github.com/derailed/k9s@latest
