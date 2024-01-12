@@ -7,10 +7,8 @@
 logged_in_home=$(eval echo "~${logged_in_user}")
 
 # set permissions
-sudo snap install microk8s --classic
+[[ $(command -v microk8s >/dev/null 2>&1) -ne 0 ]] && sudo snap install microk8s --classic
 sudo usermod -a -G microk8s "$logged_in_user"
-sudo chown -R "$logged_in_user" "${logged_in_home}/.kube"
-newgrp microk8s
 
 # allow pod-to-pod and pod-to-internet communication
 distro=$(grep -E "^ID=" /etc/os-release | cut -d'=' -f2 | tr -d '"')
@@ -26,7 +24,7 @@ fi
 microk8s enable dashboard
 microk8s enable dns
 microk8s enable ingress
-microk8s enable metallb
+microk8s enable metallb				# manually input IP range (e.g., 192.168.64.100-192.168.64.200)
 microk8s enable cert-manager
 microk8s enable storage
 microk8s enable registry
@@ -45,6 +43,7 @@ if [[ -f "${logged_in_home}/.kube/config" ]]; then
 	cp "${logged_in_home}/.kube/config" "${logged_in_home}/.kube/config_$(date +%Y%m%d_%H%M%S)"
 fi
 microk8s.kubectl config view --raw > "${logged_in_home}/.kube/config"
+[[ -f ""${logged_in_home}/.kube"" ]] && sudo chown -R "$logged_in_user" "${logged_in_home}/.kube"
 
 # get server address
 srv_addr=$(grep -E "server: https://.*:16443" "${logged_in_home}/.kube/config" | awk '{print $2}')
@@ -61,4 +60,5 @@ else
 	exit 1
 fi
 
-exit 0
+# launches a new subshell with user added to microk8s group
+newgrp microk8s
