@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2087
+
 # SOURCE:https://github.com/basecamp/kamal/issues/41#issuecomment-1789223148
 
 # get repo root
@@ -14,20 +16,53 @@ ENV_FILE="${TLD}/.env"
 # get logged in user
 [[ -n $(logname >/dev/null 2>&1) ]] && logged_in_user=$(logname) || logged_in_user=$(whoami)
 
+# read tld/config/hosts file into array
+readarray -t REMOTE_HOSTS < "${TLD}/config/hosts"
+
+# remove lines starting with # and empty lines
+REMOTE_HOSTS=("${REMOTE_HOSTS[@]//#*/}")
+
 # set env vars
 SSH_USER="${SSH_USER:-$logged_in_user}"
-SSH_HOST="${REMOTE_HOSTS:-localhost}"
-REMOTE_HOST="${SSH_USER}@${SSH_HOST}"
 NETWORK_NAME="${NETWORK_NAME:-app-tier}"
 
-# SSH into the remote host and execute Docker commands
-ssh "$REMOTE_HOST" << EOF
-    # Check if the Docker network already exists
-    if ! docker network inspect "$NETWORK_NAME" &>/dev/null; then
-        # If it doesn't exist, create it
-        docker network create "$NETWORK_NAME"
-        echo "Created Docker network: $NETWORK_NAME"
-    else
-        echo "Docker network $NETWORK_NAME already exists, skipping creation."
-    fi
-EOF
+create_network() {
+	local REMOTE_HOST="$1"
+	echo -e "$REMOTE_HOST"
+	ssh "${SSH_USER}@${REMOTE_HOST}" <<-EOF
+		# Check if the Docker network already exists
+		if ! docker network inspect "$NETWORK_NAME" &>/dev/null; then
+			# If it doesn't exist, create it
+			docker network create "$NETWORK_NAME"
+			echo "Created Docker network: $NETWORK_NAME"
+		else
+			echo "Docker network $NETWORK_NAME already exists, skipping creation."
+		fi
+		EOF
+}
+
+create_volume() {
+	local REMOTE_HOST="$1"
+	echo -e "$REMOTE_HOST"
+	ssh "${SSH_USER}@${REMOTE_HOST}" <<-EOF
+		# create docker nfs volume
+		docker volume create \
+			--driver local \
+			--opt type=nfs \
+			--opt o=addr=10.13.37.11,rw,noatime,rsize=8192,wsize=8192,tcp,timeo=14 \
+			--opt device=:/mnt/pool0/AnalyticsShare \
+			AnalyticsShareFS
+		EOF
+}
+
+
+main() {
+	for host in "${REMOTE_HOSTS[@]}"; do
+		[[ -z "$host" ]] && continue
+		create_network "$host"
+		create_volume "$host"
+	done
+}
+main
+
+exit 0

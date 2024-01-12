@@ -3,36 +3,31 @@ service: <%= ENV['SERVICE'] %>
 image:
   - <%= ENV['USER_NAME'] %>/<%= ENV['SERVICE'] %>
 
+builder:
+  context: .
+  dockerfile: Dockerfile
+  local:
+    arch: arm64
+    host: unix:///Users/<%= `whoami`.strip %>/.docker/run/docker.sock
+  # remote:
+  #   arch: amd64
+  #   host: ssh://<%= ENV['SSH_USER'] %>@192.168.8.150
+  # cache:
+  #   # type: gha
+  # secrets:
+  #   - GITHUB_TOKEN
+
 registry:
   server: <%= ENV['REGISTRY_URL'] %>
   username: <%= ENV['USER_NAME'] %>
   password:
     - KAMAL_REGISTRY_PASSWORD
 
-# Remember to run `kamal env push` after making changes!
-# env:
-#   clear:
-#     DB_HOST: 192.168.0.2
-#   secret:
-#     - RAILS_MASTER_KEY
-
-ssh:
-  user: <%= ENV['SSH_USER'] %>
-
-builder:
-  context: .
-  dockerfile: Dockerfile
-  # secrets:
-  #   - GITHUB_TOKEN
-  # cache:
-  #   # type: gha
-  # remote:
-  #   arch: amd64
-  #   host: ssh://<%= ENV['SSH_USER'] %>@192.168.8.150
 
 servers:
   web:
-    hosts: <%= ENV['REMOTE_HOSTS'] %>
+    hosts:
+      - <%= File.read('config/hosts').split("\n").reject { |line| line.start_with?('#') } %>
     options:
       network: <%= ENV['NETWORK'] %>
     port: 8000:8000
@@ -43,12 +38,22 @@ servers:
       traefik.http.routers.service-name.tls: true
       traefik.http.routers.service-name.tls.certresolver: letsencrypt
 
+# nginx docker-proxy listening on 80
+# traefik:
+#   host_port: 8888
+
+ssh:
+  user: <%= ENV['SSH_USER'] %>
+
+primary_role: web
+
 healthcheck:
   cord: /tmp/kamal-cord
   path: /up
   port: <%= ENV['PORT'] %>
-  max_attempts: 10
-  interval: 20s
+  max_attempts: 30
+  interval: 300s
+  log_lines: 100
 
 # rolling deployments
 boot:
