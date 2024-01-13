@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # $USER
 [[ -n $(logname >/dev/null 2>&1) ]] && logged_in_user=$(logname) || logged_in_user=$(whoami)
 
@@ -9,6 +11,9 @@ logged_in_home=$(eval echo "~${logged_in_user}")
 # set permissions
 [[ $(command -v microk8s >/dev/null 2>&1) -ne 0 ]] && sudo snap install microk8s --classic
 sudo usermod -a -G microk8s "$logged_in_user"
+
+# launches a new subshell with user added to microk8s group
+newgrp microk8s
 
 # allow pod-to-pod and pod-to-internet communication
 distro=$(grep -E "^ID=" /etc/os-release | cut -d'=' -f2 | tr -d '"')
@@ -59,6 +64,3 @@ else
 	echo "Please install go or snap first."
 	exit 1
 fi
-
-# launches a new subshell with user added to microk8s group
-newgrp microk8s
