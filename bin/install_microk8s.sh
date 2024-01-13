@@ -12,6 +12,7 @@ logged_in_home=$(eval echo "~${logged_in_user}")
 [[ $(command -v microk8s >/dev/null 2>&1) -ne 0 ]] && sudo snap install microk8s --classic
 sudo usermod -a -G microk8s "$logged_in_user"
 
+# TODO: qa
 # launches a new subshell with user added to microk8s group
 ./$(basename "$0") && exit
 
