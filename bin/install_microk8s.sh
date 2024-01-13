@@ -13,7 +13,7 @@ logged_in_home=$(eval echo "~${logged_in_user}")
 sudo usermod -a -G microk8s "$logged_in_user"
 
 # launches a new subshell with user added to microk8s group
-newgrp microk8s
+./$(basename "$0") && exit
 
 # allow pod-to-pod and pod-to-internet communication
 distro=$(grep -E "^ID=" /etc/os-release | cut -d'=' -f2 | tr -d '"')
