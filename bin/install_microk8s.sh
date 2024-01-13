@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+# shellcheck disable=SC2002
 
 # $USER
 [[ -n $(logname >/dev/null 2>&1) ]] && logged_in_user=$(logname) || logged_in_user=$(whoami)
@@ -22,8 +22,12 @@ if [[ "$distro" = "debian" || "$distro" = "ubuntu" ]]; then
     sudo ufw allow in on cni0 && sudo ufw allow out on cni0
     sudo ufw default allow routed
 elif [[ "$distro" == "fedora" ]]; then
-    sudo firewall-cmd --permanent --zone=trusted --change-interface=cni0
-    sudo firewall-cmd --permanent --zone=trusted --add-masquerade
+    SUBNET=$(cat /var/snap/microk8s/current/args/cni-network/cni.yaml | grep CALICO_IPV4POOL_CIDR -a1 | tail -n1 | grep -oP '[\d\./]+')
+	sudo firewall-cmd --reload
+	sudo firewall-cmd --permanent --new-zone=microk8s-cluster
+	sudo firewall-cmd --permanent --zone=microk8s-cluster --set-target=ACCEPT
+	sudo firewall-cmd --permanent --zone=microk8s-cluster --add-source=$SUBNET
+	sudo firewall-cmd --reload
 fi
 
 # enable addons
@@ -33,7 +37,7 @@ microk8s enable ingress
 microk8s enable metallb				# manually input IP range (e.g., 192.168.64.100-192.168.64.200)
 microk8s enable cert-manager
 microk8s enable storage
-microk8s enable registry
+microk8s enable registry --size=20Gi
 microk8s enable minio
 microk8s enable gpu
 microk8s enable observability       # skip prometheus (deprecated)
