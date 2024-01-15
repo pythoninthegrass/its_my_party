@@ -3,6 +3,8 @@ version: "3.0"
 vars:
   REPO_DIR: "$(git rev-parse --show-toplevel)"
 
+dotenv: ['{{.REPO_DIR}}/.env']
+
 tasks:
   all:
     deps:
