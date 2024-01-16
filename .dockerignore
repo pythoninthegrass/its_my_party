@@ -4,7 +4,7 @@
 **/.dockerignore
 **/.DS_Store
 **/.editorconfig
-**/.env.*
+**/*.env*
 **/.git
 **/.github
 **/.gitignore
