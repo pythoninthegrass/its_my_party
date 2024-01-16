@@ -2,6 +2,16 @@ version: "3.0"
 
 dotenv: ['.env']
 
+env:
+  TLD:
+    # sh: "echo ${{.TASKFILE_DIR}}"         # absolute path
+    sh: "basename ${{.TASKFILE_DIR}}"       # directory name
+  INSTA_K8S:
+    sh: "echo './bin/install_microk8s.sh'"
+  COMPOSE_FILE: docker-compose.yml
+
+vars:
+
 tasks:
   print:
     - |
