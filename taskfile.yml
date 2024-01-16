@@ -1,18 +1,28 @@
 version: "3.0"
 
-vars:
-  REPO_DIR: "$(git rev-parse --show-toplevel)"
-
-dotenv: ['{{.REPO_DIR}}/.env']
+dotenv: ['.env']
 
 tasks:
+  print:
+    - |
+      echo "REGISTRY_URL: $REGISTRY_URL"
+      echo "USER_NAME: $USER_NAME"
+      echo "SERVICE: $SERVICE"
+
+  default:
+    desc: "Default task"
+    cmds:
+      - task --list
+
   all:
+    desc: "Run all tasks"
     deps:
       - enable_registry
       - build
       - push
 
   enable_registry:
+    desc: "Enable the microk8s registry addon"
     cmds:
       - microk8s enable registry --size=20Gi
       - echo "Follow the instructions at https://microk8s.io/docs/registry-built-in to add the registry to your docker config"
@@ -20,13 +30,13 @@ tasks:
       - test "$(microk8s status --wait-ready --addon registry)" = "enabled"
 
   build:
-    deps:
-      - enable_registry
+    desc: "Build the docker image"
     cmds:
-      - docker build -t localhost:32000/its-my-party:latest {{.REPO_DIR}}
+      - docker build -t "${REGISTRY_URL}/${USER_NAME}/${SERVICE}:latest" {{.TASKFILE_DIR}}
 
   push:
+    desc: "Push the docker image to the registry"
     deps:
       - build
     cmds:
-      - docker push localhost:32000/its-my-party
+      - docker push "${REGISTRY_URL}/${USER_NAME}/${SERVICE}"
