@@ -4,8 +4,8 @@ dotenv: ['.env']
 
 env:
   TLD:
-    # sh: "echo ${{.TASKFILE_DIR}}"         # absolute path
-    sh: "basename ${{.TASKFILE_DIR}}"       # directory name
+    sh: "echo {{.TASKFILE_DIR}}"              # absolute path
+    # sh: "basename ${{.TASKFILE_DIR}}"       # directory name
   INSTA_K8S:
     sh: "echo './bin/install_microk8s.sh'"
   COMPOSE_FILE: docker-compose.yml
@@ -15,6 +15,7 @@ vars:
 tasks:
   print:
     - |
+      echo -e "TLD:\t\t$TLD"
       echo -e "REGISTRY_URL:\t$REGISTRY_URL"
       echo -e "USER_NAME:\t$USER_NAME"
       echo -e "SERVICE:\t$SERVICE"
@@ -42,7 +43,7 @@ tasks:
   build:
     desc: "Build the docker image"
     cmds:
-      - docker build -t "${REGISTRY_URL}/${USER_NAME}/${SERVICE}:latest" {{.TASKFILE_DIR}}
+      - docker build -t "${REGISTRY_URL}/${USER_NAME}/${SERVICE}:latest" "{{.TLD}}"
 
   push:
     desc: "Push the docker image to the registry"
