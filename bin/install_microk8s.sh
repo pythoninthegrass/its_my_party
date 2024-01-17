@@ -9,8 +9,9 @@
 logged_in_home=$(eval echo "~${logged_in_user}")
 
 # set permissions
-[[ $(command -v microk8s >/dev/null 2>&1) -ne 0 ]] && sudo snap install microk8s --classic
+[[ $(command -v microk8s >/dev/null 2>&1; echo $?) -ne 0 ]] && sudo snap install microk8s --classic
 sudo usermod -a -G microk8s "$logged_in_user"
+mkdir -p "${logged_in_home}/.kube"
 
 # TODO: qa
 # launches a new subshell with user added to microk8s group
@@ -41,9 +42,9 @@ microk8s enable registry --size=20Gi
 microk8s enable minio
 microk8s enable gpu
 microk8s enable observability       # skip prometheus (deprecated)
-# microk8s enable cis-hardening       # Apply CIS K8s hardening
-# microk8s enable community           # The community addons repository
-# microk8s enable host-access         # Allow Pods connecting to Host services smoothly
+# microk8s enable cis-hardening     # Apply CIS K8s hardening
+# microk8s enable community         # The community addons repository
+# microk8s enable host-access       # Allow Pods connecting to Host services smoothly
 
 # check status
 microk8s status
