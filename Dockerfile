@@ -4,8 +4,6 @@ ARG PYTHON_VERSION=3.11.6
 
 FROM python:${PYTHON_VERSION}-slim-bullseye AS builder
 
-LABEL org.opencontainers.image.description "Python toy app"
-
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update && apt-get -qq install \
@@ -66,18 +64,20 @@ COPY . .
 
 USER $USER_NAME
 
-RUN tee -a "$HOME/.bashrc" <<EOF
+RUN <<EOM
+#!/usr/bin/env bash
+tee -a "$HOME/.bashrc" <<EOF
 # aliases
 alias ..='cd ../'
 alias ...='cd ../../'
 alias ll='ls -la --color=auto'
-
 EOF
 
-RUN tee -a "$HOME/.bash_profile" <<EOF
+tee -a "$HOME/.bash_profile" <<EOF
 [[ -s ~/.bashrc ]] && . ~/.bashrc
-
 EOF
+
+EOM
 
 FROM dev AS runner
 
@@ -89,3 +89,7 @@ EXPOSE 8000
 
 # CMD ["sleep", "infinity"]
 CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000", "app:app", "--reload"]
+
+LABEL org.opencontainers.image.description "Python toy app"
+LABEL org.opencontainers.image.source=https://github.com/pythoninthegrass/its-my-party
+LABEL org.opencontainers.image.licenses=Unlicense

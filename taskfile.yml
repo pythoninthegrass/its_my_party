@@ -6,8 +6,7 @@ env:
   TLD:
     sh: "echo {{.TASKFILE_DIR}}"              # absolute path
     # sh: "basename ${{.TASKFILE_DIR}}"       # directory name
-  INSTA_K8S:
-    sh: "echo './bin/install_microk8s.sh'"
+  INSTA_K8S: ./bin/install_microk8s.sh
   COMPOSE_FILE: docker-compose.yml
 
 vars:
@@ -39,6 +38,13 @@ tasks:
       - echo "Follow the instructions at https://microk8s.io/docs/registry-built-in to add the registry to your docker config"
     status:
       - test "$(microk8s status --wait-ready --addon registry)" = "enabled"
+
+  # TODO: add conditional to login differently based on registry
+  login:
+    desc: "Login to the registry"
+    run: once
+    cmds:
+      - echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${USER_NAME}" --password-stdin
 
   build:
     desc: "Build the docker image"
