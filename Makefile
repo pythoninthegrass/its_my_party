@@ -33,16 +33,18 @@ ifeq ($(shell command -v git >/dev/null 2>&1; echo $$?), 0)
 	export GIT := $(shell which git)
 endif
 
+ifeq ($(shell if test -f /etc/apt/sources.list.d/deadsnakes-ubuntu-ppa-$(shell lsb_release -cs).list; then echo 0; else echo 1; fi), 0)
+	export DEADSNAKES := 0
+else
+	export DEADSNAKES := 1
+endif
+
 ifeq ($(shell command -v python3 >/dev/null 2>&1; echo $$?), 0)
 	export PYTHON := $(shell which python3)
 endif
 
-ifeq ($(shell command -v pip >/dev/null 2>&1; echo $$?), 0)
+ifeq ($(shell command -v pip3 >/dev/null 2>&1; echo $$?), 0)
 	export PIP := $(shell which pip3)
-endif
-
-ifeq ($(shell command -v ansible >/dev/null 2>&1; echo $$?), 0)
-	export ANSIBLE := $(shell which ansible)
 endif
 
 ifneq (,$(wildcard /etc/os-release))
@@ -58,10 +60,10 @@ RESET  := $(shell tput -Txterm sgr0)
 
 # targets
 .PHONY: all
-all: help xcode homebrew update git python pip ansible install release test list launch info shell stop start delete purge ## run all targets
+all: help xcode homebrew update git python pip install release test list launch info shell stop start delete purge ## run all targets
 
 xcode: ## install xcode command line tools
-	if [ "${UNAME}" = "Darwin" ] && [ -n "${XCODE}" ]; then \
+	@if [ "${UNAME}" = "Darwin" ] && [ -n "${XCODE}" ]; then \
 		echo "Installing Xcode command line tools..."; \
 		xcode-select --install; \
 	elif [ "${UNAME}" = "Darwin" ] && [ "${XCODE}" -eq 1 ]; then \
@@ -71,7 +73,7 @@ xcode: ## install xcode command line tools
 	fi
 
 homebrew: ## install homebrew
-	if [ "${UNAME}" = "Darwin" ] && [ -n "${BREW}" ]; then \
+	@if [ "${UNAME}" = "Darwin" ] && [ -n "${BREW}" ]; then \
 		echo "Installing Homebrew..."; \
 		/bin/bash -c "$$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; \
 	elif [ "${UNAME}" = "Darwin" ] && [ ! -z "${BREW}" ]; then \
@@ -82,45 +84,53 @@ homebrew: ## install homebrew
 
 update: ## update package manager
 	@echo "Updating package manager..."
-	if [ "${UNAME}" = "Darwin" ] && [ -n "${BREW}" ]; then \
+	@if [ "${UNAME}" = "Darwin" ] && [ -n "${BREW}" ]; then \
 		brew update; \
 	elif [ "${ID}" = "ubuntu" ] || [ "${ID_LIKE}" = "debian" ]; then \
-		sudo apt update; \
+		sudo apt-get update; \
 	fi
 
 git: ## install git
-	if [ -n "${GIT}" ]; then \
+	@if [ -n "${GIT}" ]; then \
 		echo "git already installed."; \
 		exit 0; \
 	fi
 	if [ "${UNAME}" = "Darwin" ] && [ -n "${BREW}" ]; then \
 		brew install git; \
 	elif [ "${ID}" = "ubuntu" ] || [ "${ID_LIKE}" = "debian" ]; then \
-		sudo apt install -y git; \
+		sudo apt-get install -y git; \
 	else \
 		echo "git already installed"; \
 	fi
 
-python: ## install system python
-	if [ -n "${PYTHON}" ]; then \
+deadsnakes: ## install python deadsnakes repo
+	@if [ "${ID}" = "ubuntu" ] || [ "${ID_LIKE}" = "debian" ] && [ "${DEADSNAKES}" = 1 ]; then \
+		sudo add-apt-repository ppa:deadsnakes/ppa
+		sudo apt-get update; \
+	else \
+		echo "deadsnakes repo already installed"; \
+	fi
+
+python: deadsnakes ## install system python
+	@if [ -n "${PYTHON}" ]; then \
 		echo "python already installed."; \
 		exit 0; \
 	fi
 	if [ "${UNAME}" = "Darwin" ] && [ -z "${PYTHON}" ]; then \
 		brew install python; \
 	elif [ "${ID}" = "ubuntu" ] || [ "${ID_LIKE}" = "debian" ]; then \
-		sudo apt install -y python3; \
+		sudo apt-get install --no-recommends -y python3.11; \
 	fi
 
 pip: python ## install pip
-	if [ -n "${PIP}" ]; then \
+	@if [ -n "${PIP}" ]; then \
 		echo "pip already installed."; \
 		exit 0; \
 	fi
 	if [ "${UNAME}" = "Darwin" ] && [ -z "${PYTHON})" ]; then \
 		brew install python; \
 	elif [ "${ID}" = "ubuntu" ] || [ "${ID_LIKE}" = "debian" ] && [ -z "${PIP}" ]; then \
-		sudo apt install -y python3-pip; \
+		sudo apt-get install --no-recommends -y python3-pip; \
 	else \
 		echo "pip install not supported on os"; \
 	fi
@@ -128,7 +138,7 @@ pip: python ## install pip
 # * MULTIPASS START
 launch: ## launch a new instance of ubuntu
 	@echo "${YELLOW}Launching a new instance of ubuntu${RESET}"
-	multipass launch \
+	@multipass launch \
 		--name "${NAME}" "${IMAGE}" \
 		--cpus "${CPU}" \
 		--disk "${DISK}" \
@@ -169,17 +179,7 @@ purge: ## purge all instances
 	multipass purge
 # ! MULTIPASS END
 
-run: ## run ansible playbook
-	@echo "${YELLOW}Running ansible playbook${RESET}"
-	#!/usr/bin/env bash
-	# set -euxo pipefail
-	multipass exec "${NAME}" -- \
-		ansible-playbook \
-			/home/ubuntu/apt_lab_tf/ansible/playbook.yml \
-			--tags qa \
-			-vvv
-
-install: xcode homebrew git python pip ansible ## install dependencies
+install: xcode homebrew git python pip ## install dependencies
 
 release: ## release package
 	[ ! -z "${POETRY}" ] && poetry build
