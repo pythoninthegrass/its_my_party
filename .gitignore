@@ -4,6 +4,7 @@
 *.pem
 *.sample
 *.sqlite
+*.tar.gz
 *.zip
 web-check*
 
