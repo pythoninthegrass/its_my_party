@@ -6,7 +6,7 @@
 
 # ENV VARS
 export SHELL 		:= $(shell which sh)
-export PY_VER		:= "3.12.0"
+export PY_VER		:= "3.11.6"
 export UNAME 		:= $(shell uname -s)
 
 # MULTIPASS
@@ -47,6 +47,10 @@ ifeq ($(shell command -v pip3 >/dev/null 2>&1; echo $$?), 0)
 	export PIP := $(shell which pip3)
 endif
 
+ifeq ($(shell command -v task >/dev/null 2>&1; echo $$?), 0)
+	export TASK := $(shell which task)
+endif
+
 ifneq (,$(wildcard /etc/os-release))
 	include /etc/os-release
 endif
@@ -60,7 +64,7 @@ RESET  := $(shell tput -Txterm sgr0)
 
 # targets
 .PHONY: all
-all: help xcode homebrew update git python pip install release test list launch info shell stop start delete purge ## run all targets
+all: help xcode homebrew update git python pip task install release test list launch info shell stop start delete purge ## run all targets
 
 xcode: ## install xcode command line tools
 	@if [ "${UNAME}" = "Darwin" ] && [ -n "${XCODE}" ]; then \
@@ -135,6 +139,20 @@ pip: python ## install pip
 		echo "pip install not supported on os"; \
 	fi
 
+task: ## install task
+	@if [ -n "${TASK}" ]; then \
+		echo "task already installed."; \
+		exit 0; \
+	fi
+	if [ "${UNAME}" = "Darwin" ] && [ -n "${BREW}" ]; then \
+		brew install go-task; \
+	elif [ "${ID}" = "ubuntu" ] || [ "${ID_LIKE}" = "debian" ]; then \
+		sudo snap install task --classic; \
+	else \
+		echo -e "uncaught error\nplease install manually"; \
+		echo "https://taskfile.dev/installation"; \
+	fi
+
 # * MULTIPASS START
 launch: ## launch a new instance of ubuntu
 	@echo "${YELLOW}Launching a new instance of ubuntu${RESET}"
@@ -179,7 +197,7 @@ purge: ## purge all instances
 	multipass purge
 # ! MULTIPASS END
 
-install: xcode homebrew git python pip ## install dependencies
+install: xcode homebrew git python pip task ## install dependencies
 
 release: ## release package
 	[ ! -z "${POETRY}" ] && poetry build
