@@ -46,6 +46,7 @@ whitelist() {
 		sudo ufw default allow routed
 	elif [[ "$distro" == "fedora" ]]; then
 		SUBNET=$(cat /var/snap/microk8s/current/args/cni-network/cni.yaml | grep CALICO_IPV4POOL_CIDR -a1 | tail -n1 | grep -oP '[\d\./]+')
+		sudo iptables -P FORWARD ACCEPT
 		sudo firewall-cmd --reload
 		sudo firewall-cmd --permanent --new-zone=microk8s-cluster
 		sudo firewall-cmd --permanent --zone=microk8s-cluster --set-target=ACCEPT
