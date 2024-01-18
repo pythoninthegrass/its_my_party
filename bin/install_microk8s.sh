@@ -40,7 +40,7 @@ relaunch() {
 
 # allow pod-to-pod and pod-to-internet communication
 whitelist() {
-distro=$(grep -E "^ID=" /etc/os-release | cut -d'=' -f2 | tr -d '"')
+	distro=$(grep -E "^ID=" /etc/os-release | cut -d'=' -f2 | tr -d '"')
 	if [[ "$distro" = "debian" || "$distro" = "ubuntu" ]]; then
 		sudo ufw allow in on cni0 && sudo ufw allow out on cni0
 		sudo ufw default allow routed
