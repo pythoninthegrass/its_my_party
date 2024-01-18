@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: deployment-two-configmap
+data:
+  index.html: |
+    <html>
+    <body>
+    <h1>This is Deployment Two</h1>
+    </body>
+    </html>

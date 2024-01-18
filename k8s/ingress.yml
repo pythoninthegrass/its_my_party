@@ -1,17 +1,64 @@
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name:
+#   namespace: its-my-party
+# spec:
+#   ingressClassName: nginx
+#   rules:
+#   - http:
+#       paths:
+#       - path: "/"
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: app
+#             port:
+#               number: 8000
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#  name: microbot-ingress
+#  annotations:
+#    cert-manager.io/cluster-issuer: lets-encrypt
+# spec:
+#  tls:
+#  - hosts:
+#    - my-service.itsmyparty.ing
+#    secretName: microbot-ingress-tls
+#  rules:
+#  - host: my-service.itsmyparty.ing
+#    http:
+#      paths:
+#      - backend:
+#          service:
+#            name: microbot
+#            port:
+#              number: 80
+#        path: /
+#        pathType: Exact
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: http-ingress
-  namespace: its-my-party
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-microk8s
 spec:
-  ingressClassName: nginx
+  ingressClassName: public
   rules:
-  - http:
-      paths:
-      - path: "/"
-        pathType: Prefix
-        backend:
-          service:
-            name: app
-            port:
-              number: 8000
+    - host: itsmyparty.ing
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: itsmyparty
+                port:
+                  number: 8000
+  tls:
+    - hosts:
+        - itsmyparty.ing
+      secretName: its-my-party-tls

@@ -1,0 +1,61 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uptime
+  labels:
+    app: uptime
+spec:
+  selector:
+    matchLabels:
+      app: uptime
+  template:
+    metadata:
+      labels:
+        app: uptime
+    spec:
+      containers:
+        - name: uptime
+          image: louislam/uptime-kuma:1.21.2-debian
+          imagePullPolicy: Always
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: uptime
+  labels:
+    app: uptime
+spec:
+  selector:
+    app: uptime
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3001
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: uptime
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-issuer
+  labels:
+    app: uptime
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: uptime.itsmyparty.ing
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: uptime
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - uptime.itsmyparty.ing
+      secretName: tls-uptime
